@@ -1,8 +1,13 @@
+# import mctspy manually
+import sys
+
+sys.path.append("./mctspy")
+
 import numpy as np
 from mctspy.tree.nodes import TwoPlayersGameMonteCarloTreeSearchNode as TreeSearchNode
 from mctspy.tree.search import MonteCarloTreeSearch
-from mctspy.games.examples.tictactoe import TicTacToeGameState, TicTacToeMove
-from opponent import RandomAgent, HeuristicAgent
+from mctspy.games.examples.tictactoe import TicTacToeGameState
+from opponent import RandomAgent, HeuristicAgent, pick_move, SelfPlayAgent, HumanAgent
 import copy
 import time
 
@@ -24,21 +29,29 @@ def play(
         opponent = RandomAgent()
     elif opponent_policy == "heuristic":
         opponent = HeuristicAgent(init_state.board_size)
+    elif opponent_policy == "selfplay":
+        opponent = SelfPlayAgent()
+    elif opponent_policy == "human":
+        opponent = HumanAgent()
     else:
         raise ValueError("Invalid opponent policy")
 
     while not done:
         # pick action for player whos turn it is
+        root = TreeSearchNode(state=state)
+        mcts = MonteCarloTreeSearch(root)
 
         # player
         if next_to_move == 1:
-            root = TreeSearchNode(state=state)
-            mcts = MonteCarloTreeSearch(root)
             action = mcts.best_action(10000)
             move = pick_move(state, action, next_to_move)
         # opponent
         elif next_to_move == -1:
-            move = opponent.policy(state)
+            move = (
+                opponent.policy(mcts, state)
+                if opponent_policy == "selfplay"
+                else opponent.policy(state)
+            )
         else:
             raise ValueError("Invalid move turn")
 
@@ -64,33 +77,35 @@ def play(
     return result
 
 
-def pick_move(
-    cur_state: TicTacToeGameState, best_action: TreeSearchNode, next_to_move: int
-) -> TicTacToeMove:
-    cur_board = cur_state.board
-    best_board = best_action.state.board
-    diff_board = best_board - cur_board
-    x, y = np.where(diff_board == next_to_move)
-    return TicTacToeMove(x[0], y[0], next_to_move)
-
-
-size = 3
+"""
+Game settings
+"""
+size = 3  # size of board
 state = np.zeros((size, size))
-next_to_move = -1
-games = 10
+next_to_move = -1  # 1 player starts, -1 opponent starts
+games = 10  # number of played games
+opponent_policy = "random"  # random, heuristic, selfplay, human
 
 initial_board_state = TicTacToeGameState(state=state, next_to_move=next_to_move)
 
 start_time = time.perf_counter()
 results = [
     play(
-        initial_board_state, next_to_move, i, opponent_policy="heuristic", verbose=False
+        initial_board_state,
+        next_to_move,
+        i,
+        opponent_policy=opponent_policy,
+        verbose=True,
     )
     for i in range(games)
 ]
 end_time = time.perf_counter()
 
 won_cnt = results.count(1)
+draw_cnt = results.count(0)
 print(
     f"Player won {won_cnt}/{games} games. {(won_cnt/games)*100}% in {round(end_time - start_time, 2)}sec"
+)
+print(
+    f"Player draw {draw_cnt}/{games} games. {(draw_cnt/games)*100}% in {round(end_time - start_time, 2)}sec"
 )
