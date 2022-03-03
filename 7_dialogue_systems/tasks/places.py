@@ -1,5 +1,6 @@
 import os
 import requests
+from spacy import Language
 from typing import Union
 from dotenv import load_dotenv
 
@@ -8,6 +9,22 @@ load_dotenv()
 
 PLACES_API_KEY = os.getenv("PLACES_API_KEY")
 assert PLACES_API_KEY, "No Places API key specified"
+
+
+def handle_place(statement: Language):
+    # find location name by spacy named entity recognition
+    for ent in statement.ents:
+        if ent.label_ == "GPE" or ent.label_ == "ORG":  # geopolitical entity
+            location = ent.text
+            break
+        else:
+            return "You need to tell a location"
+
+    location_address = get_place(location)
+    if location_address != None:
+        return f"The address for {location} is: {location_address}"
+    else:
+        return "Something went wrong"
 
 
 def get_place(place_name: str) -> Union[str, None]:

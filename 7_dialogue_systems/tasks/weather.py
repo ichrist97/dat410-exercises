@@ -1,5 +1,6 @@
 import os
 import requests
+from spacy import Language
 from typing import Union
 from dotenv import load_dotenv
 
@@ -8,6 +9,22 @@ load_dotenv()
 
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 assert WEATHER_API_KEY, "No Weather API key specified"
+
+
+def handle_weather(statement: Language):
+    # find city name by spacy named entity recognition
+    for ent in statement.ents:
+        if ent.label_ == "GPE":  # geopolitical entity
+            city = ent.text
+            break
+        else:
+            return "You need to tell a city"
+
+    city_weather = get_weather(city)
+    if city_weather != None:
+        return f"In {city} the current weather is: {city_weather}"
+    else:
+        return "Something went wrong"
 
 
 def get_weather(city_name: str) -> Union[str, None]:

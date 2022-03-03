@@ -1,6 +1,8 @@
 import spacy
-from tasks.places import get_place
-from tasks.weather import get_weather
+from spacy import Language
+from tasks.places import handle_place
+from tasks.weather import handle_weather
+from tasks.finance import handle_stock
 
 # load language model
 nlp = spacy.load("en_core_web_md")
@@ -8,30 +10,54 @@ nlp = spacy.load("en_core_web_md")
 """
 Tasks:
 - weather forecast
-- find a restaurant / location
-- find the next bus / tram
+- find a location
+- find stock price
 """
 
+HANDLER = {"weather": handle_weather, "place": handle_place, "stock": handle_stock}
 
-def chatbot(statement):
-    weather = nlp("Current weather in a city")
+
+def calc_similarities(tasks, statement: Language):
+    res = []
+    # calc all similarities for the nlp tasks
+    for key, lang in tasks:
+        sim = lang.similarity(statement)
+        res.append((key, sim))
+    # sort by similarity ascending
+    res.sort(key=lambda y: y[1])
+    return res
+
+
+def chatbot(statement: str):
+    weather = ("weather", nlp("Current weather in a city"))
+    place = ("place", nlp("Where is this place"))
+    stock = ("stock", nlp("What is the stock price"))
+    tasks = [weather, place, stock]
+
     statement = nlp(statement)
 
     min_similarity = 0.7
-    if weather.similarity(statement) >= min_similarity:
-        # find city name by spacy named entity recognition
-        print(statement.ents)
-        for ent in statement.ents:
-            if ent.label_ == "GPE":  # geopolitical entity
-                city = ent.text
-                break
-            else:
-                return "You need to tell a city"
 
-        city_weather = get_weather(city)
-        if city_weather != None:
-            return f"In {city} the current weather is: {city_weather}"
-        else:
-            return "Something went wrong"
+    # calc similarities
+    sims = calc_similarities(tasks, statement)
+    intent_name, intent_sim = sims[-1]
+
+    if intent_sim >= min_similarity:
+        return HANDLER[intent_name](statement)
     else:
         return "Sorry I don't know understand that. Please rephrase your statement"
+
+
+def start():
+    while True:
+        phrase = input("How can I help you?\nType 'Exit' to exit the chatbot\n> ")
+
+        # exit check
+        if phrase == "Exit":
+            quit()
+
+        response = chatbot(phrase)
+        print(response)
+
+
+start()
