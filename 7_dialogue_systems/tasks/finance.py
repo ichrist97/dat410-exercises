@@ -11,8 +11,20 @@ FINANCE_API_KEY = os.getenv("FINANCE_API_KEY")
 assert FINANCE_API_KEY, "No Finance API key specified"
 
 
-def handle_stock(statement: Language):
-    pass
+def handle_stock(statement: Language) -> str:
+    # find stock name
+    for ent in statement.ents:
+        if ent.label_ == "ORG":  # organization
+            stock = ent.text
+            break
+        else:
+            return "You need to tell a stock"
+
+    stock_price = get_stock_price(stock)
+    if stock_price != None:
+        return f"Last day the stock price of {stock} is: {stock_price}"
+    else:
+        return "Something went wrong"
 
 
 def get_stock_price(stock_name: str) -> Union[str, None]:

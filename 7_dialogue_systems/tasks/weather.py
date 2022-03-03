@@ -11,14 +11,17 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 assert WEATHER_API_KEY, "No Weather API key specified"
 
 
-def handle_weather(statement: Language):
+def handle_weather(statement: Language) -> str:
     # find city name by spacy named entity recognition
+    city = None
     for ent in statement.ents:
         if ent.label_ == "GPE":  # geopolitical entity
             city = ent.text
             break
-        else:
-            return "You need to tell a city"
+
+    # no entity found
+    if city == None:
+        return "You need to tell a city"
 
     city_weather = get_weather(city)
     if city_weather != None:

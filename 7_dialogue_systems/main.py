@@ -3,6 +3,8 @@ from spacy import Language
 from tasks.places import handle_place
 from tasks.weather import handle_weather
 from tasks.finance import handle_stock
+from tasks.help import handle_help
+from typing import List
 
 # load language model
 nlp = spacy.load("en_core_web_md")
@@ -14,10 +16,16 @@ Tasks:
 - find stock price
 """
 
-HANDLER = {"weather": handle_weather, "place": handle_place, "stock": handle_stock}
+# maps intents to actions
+INTENT_HANDLER = {
+    "weather": handle_weather,
+    "place": handle_place,
+    "stock": handle_stock,
+    "help": handle_help,
+}
 
 
-def calc_similarities(tasks, statement: Language):
+def calc_similarities(tasks: List[Language], statement: Language):
     res = []
     # calc all similarities for the nlp tasks
     for key, lang in tasks:
@@ -28,11 +36,12 @@ def calc_similarities(tasks, statement: Language):
     return res
 
 
-def chatbot(statement: str):
+def chatbot(statement: str) -> str:
     weather = ("weather", nlp("Current weather in a city"))
     place = ("place", nlp("Where is this place"))
     stock = ("stock", nlp("What is the stock price"))
-    tasks = [weather, place, stock]
+    helper = ("help", nlp("What can this chatbot do?"))
+    tasks = [weather, place, stock, helper]
 
     statement = nlp(statement)
 
@@ -43,18 +52,20 @@ def chatbot(statement: str):
     intent_name, intent_sim = sims[-1]
 
     if intent_sim >= min_similarity:
-        return HANDLER[intent_name](statement)
+        return INTENT_HANDLER[intent_name](statement)
     else:
         return "Sorry I don't know understand that. Please rephrase your statement"
 
 
-def start():
+def start() -> None:
     while True:
         phrase = input("How can I help you?\nType 'Exit' to exit the chatbot\n> ")
 
         # exit check
-        if phrase == "Exit":
+        if phrase.lower() == "exit":
             quit()
+
+        # TODO ask for missing entities
 
         response = chatbot(phrase)
         print(response)

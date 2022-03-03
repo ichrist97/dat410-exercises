@@ -11,14 +11,17 @@ PLACES_API_KEY = os.getenv("PLACES_API_KEY")
 assert PLACES_API_KEY, "No Places API key specified"
 
 
-def handle_place(statement: Language):
+def handle_place(statement: Language) -> str:
     # find location name by spacy named entity recognition
+    location = None
     for ent in statement.ents:
         if ent.label_ == "GPE" or ent.label_ == "ORG":  # geopolitical entity
             location = ent.text
             break
-        else:
-            return "You need to tell a location"
+
+    # no entity found
+    if location == None:
+        return "You need to tell a location"
 
     location_address = get_place(location)
     if location_address != None:
