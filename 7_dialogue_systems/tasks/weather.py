@@ -26,8 +26,7 @@ def handle_weather(statement: Language) -> str:
     city_weather = get_weather(city)
     if city_weather != None:
         return f"In {city} the current weather is: {city_weather}"
-    else:
-        return "Something went wrong"
+    return "Something went wrong"
 
 
 def get_weather(city_name: str) -> Union[str, None]:
@@ -41,6 +40,5 @@ def get_weather(city_name: str) -> Union[str, None]:
 
     if response.status_code == 200:
         return weather
-    else:
-        print("[!] HTTP {0} calling [{1}]".format(response.status_code, api_url))
-        return None
+    print("[!] HTTP {0} calling [{1}]".format(response.status_code, api_url))
+    return None

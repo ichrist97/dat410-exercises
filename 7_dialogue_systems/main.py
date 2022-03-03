@@ -65,10 +65,8 @@ def start() -> None:
         if phrase.lower() == "exit":
             quit()
 
-        # TODO ask for missing entities
-
         response = chatbot(phrase)
-        print(response)
+        print(f"Bot: {response}")
 
 
 start()

@@ -13,18 +13,20 @@ assert FINANCE_API_KEY, "No Finance API key specified"
 
 def handle_stock(statement: Language) -> str:
     # find stock name
+    stock = None
     for ent in statement.ents:
         if ent.label_ == "ORG":  # organization
             stock = ent.text
             break
-        else:
-            return "You need to tell a stock"
+
+    # missing entity
+    if stock == None:
+        return "You need to tell a stock"
 
     stock_price = get_stock_price(stock)
     if stock_price != None:
         return f"Last day the stock price of {stock} is: {stock_price}"
-    else:
-        return "Something went wrong"
+    return "Something went wrong"
 
 
 def get_stock_price(stock_name: str) -> Union[str, None]:
@@ -42,9 +44,9 @@ def get_stock_price(stock_name: str) -> Union[str, None]:
 
     if response.status_code == 200:
         return f"${round(price, 2)}"
-    else:
-        print("[!] HTTP {0} calling [{1}]".format(response.status_code, url))
-        return None
+
+    print("[!] HTTP {0} calling [{1}]".format(response.status_code, url))
+    return None
 
 
 def map_stock_symbol(stock_name: str) -> str:

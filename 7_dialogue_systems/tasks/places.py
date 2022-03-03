@@ -26,8 +26,7 @@ def handle_place(statement: Language) -> str:
     location_address = get_place(location)
     if location_address != None:
         return f"The address for {location} is: {location_address}"
-    else:
-        return "Something went wrong"
+    return "Something went wrong"
 
 
 def get_place(place_name: str) -> Union[str, None]:
@@ -40,6 +39,5 @@ def get_place(place_name: str) -> Union[str, None]:
 
     if response.status_code == 200:
         return address
-    else:
-        print("[!] HTTP {0} calling [{1}]".format(response.status_code, url))
-        return None
+    print("[!] HTTP {0} calling [{1}]".format(response.status_code, url))
+    return None
