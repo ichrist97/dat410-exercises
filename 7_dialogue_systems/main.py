@@ -54,7 +54,7 @@ def chatbot(statement: str) -> str:
     if intent_sim >= min_similarity:
         return INTENT_HANDLER[intent_name](statement)
     else:
-        return "Sorry I don't know understand that. Please rephrase your statement"
+        return "Sorry I don't understand that. Please rephrase your statement"
 
 
 def start() -> None:

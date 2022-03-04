@@ -25,7 +25,7 @@ def handle_stock(statement: Language) -> str:
 
     stock_price = get_stock_price(stock)
     if stock_price != None:
-        return f"Last day the stock price of {stock} is: {stock_price}"
+        return f"Last day the stock price of {stock} was: ${stock_price}"
     return "Something went wrong"
 
 
