@@ -1,0 +1,16 @@
+ideas:
+
+look at the feature
+feature correlations
+hyper parameter tuning
+compare training error and validation error -> regular
+
+evaluation:
+in terms of interpretability of results and models
+not only performance
+scalability
+
+reports:
+point out what didnt work and point it out
+visualizations
+methods are more important than the results
