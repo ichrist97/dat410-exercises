@@ -37,6 +37,8 @@ class LSTMNetParams:
 
     num_classes: int  # number of output classes
 
+    tensorboard: bool  # use tensorboard
+
 
 class LSTMNet(nn.Module):
     def __init__(self, params: LSTMNetParams):
@@ -46,10 +48,13 @@ class LSTMNet(nn.Module):
         self.num_layers = params.num_layers  # number of layers
         self.input_size = params.input_size  # input size
         self.hidden_size = params.hidden_size  # hidden state
-        self.hidden_layer = params.hidden_layer  # hidden state
+        self.hidden_layer = params.hidden_layer  # hidden layer size
         self.seq_length = params.seq_length  # sequence length
         self.num_epochs = params.num_epochs
         self.dropout = params.dropout
+        self.tensorboard = params.tensorboard
+
+        self.writer = SummaryWriter() if self.tensorboard else None
 
         self.lstm = nn.LSTM(
             input_size=self.input_size,
@@ -84,7 +89,6 @@ class LSTMNet(nn.Module):
         return out
 
     def fit(self, X_train, y_train, learning_rate=0.01, verbose=False):
-        writer = SummaryWriter()
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
@@ -97,15 +101,17 @@ class LSTMNet(nn.Module):
 
             # obtain the loss function
             loss = criterion(outputs, y_train)
-            writer.add_scalar("loss/train", loss, epoch)
+            if self.writer:
+                self.writer.add_scalar("loss/train", loss, epoch)
             loss.backward()  # calculates the loss of the loss function
 
             optimizer.step()  # improve from loss, i.e backprop
             if epoch % 100 == 0 and verbose:
                 print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
 
-        writer.flush()
-        writer.close()
+        if self.writer:
+            self.writer.flush()
+            self.writer.close()
 
     def predict(self, X_test):
         self.eval()
